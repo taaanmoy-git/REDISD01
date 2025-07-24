@@ -7,4 +7,7 @@ public interface EmployeeService {
     EmployeeDTO save(EmployeeDTO dto);
     List<EmployeeDTO> getAll();
     EmployeeDTO getById(Integer id);
+    EmployeeDTO update(Integer id, EmployeeDTO dto);
+    EmployeeDTO updatePartial(Integer id, EmployeeDTO dto);
+    void deleteById(Integer id);
 }

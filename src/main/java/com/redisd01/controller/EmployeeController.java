@@ -5,15 +5,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.redisd01.dto.EmployeeDTO;
 import com.redisd01.service.EmployeeService;
+
 @RestController
 @RequestMapping("/employee")
 public class EmployeeController {
@@ -38,4 +34,22 @@ public class EmployeeController {
         EmployeeDTO employeeDTO = service.getById(id);
         return new ResponseEntity<>(employeeDTO, HttpStatus.OK);
     }
-} 
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<EmployeeDTO> update(@PathVariable Integer id, @RequestBody EmployeeDTO dto) {
+        EmployeeDTO updated = service.update(id, dto);
+        return new ResponseEntity<>(updated, HttpStatus.OK);
+    }
+
+    @PatchMapping("/updatePartial/{id}")
+    public ResponseEntity<EmployeeDTO> updatePartial(@PathVariable Integer id, @RequestBody EmployeeDTO dto) {
+        EmployeeDTO updated = service.updatePartial(id, dto);
+        return new ResponseEntity<>(updated, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> delete(@PathVariable Integer id) {
+        service.deleteById(id);
+        return new ResponseEntity<>("Employee deleted successfully with ID: " + id, HttpStatus.OK);
+    }
+}

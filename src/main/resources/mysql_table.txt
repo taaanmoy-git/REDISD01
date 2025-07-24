@@ -1,0 +1,19 @@
+CREATE DATABASE redisdb_dev;
+
+USE redisdb_dev;
+
+CREATE TABLE employee (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    age INT,
+    gender VARCHAR(10),
+    CHECK (gender IN ('male', 'female'))
+);
+
+
+INSERT INTO employee (name, age, gender) VALUES
+('Tanmoy Saha', 28, 'male'),
+('Priya Das', 26, 'female'),
+('Amit Kumar', 30, 'male'),
+('Sonal Mehta', 25, 'female');
+

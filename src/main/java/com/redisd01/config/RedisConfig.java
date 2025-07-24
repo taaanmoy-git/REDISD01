@@ -20,8 +20,8 @@ public class RedisConfig {
 	    redisTemplate.setKeySerializer(new StringRedisSerializer());
 	    redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer()); // JSON serializer
 		
-		//💡 This means: The key will be deleted automatically 30 seconds after it's set.
-		redisTemplate.expire("key", 60, TimeUnit.SECONDS); //
+	    redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
 
 	    return redisTemplate;
 	}

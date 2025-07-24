@@ -6,7 +6,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.redisd01.dto.EmployeeDTO;
@@ -17,19 +19,15 @@ import com.redisd01.repository.EmployeeRepository;
 import com.redisd01.service.EmployeeService;
 
 @Service
-public class EmployeeServiceImpl implements EmployeeService {
+public class EmployeeServiceImplCacheAnnotation implements EmployeeService {
 
-	private static final Logger logger = LoggerFactory.getLogger(EmployeeServiceImpl.class);
-
-	private static final String HASH_KEY = "EMPLOYEE";
+	private static final Logger logger = LoggerFactory.getLogger(EmployeeServiceImplCacheAnnotation.class);
 
 	@Autowired
 	private EmployeeRepository repo;
 
-	@Autowired
-	private RedisTemplate<String, Object> redisTemplate;
-
 	@Override
+	@CachePut(value = "employee", key = "#result.id", unless = "#result == null")
 	public EmployeeDTO save(EmployeeDTO employeeDTO) {
 		logger.debug("Attempting to save employee: {}", employeeDTO);
 
@@ -39,11 +37,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 		}
 
 		Employee saved = repo.save(EmployeeDTO.mapToEntity(employeeDTO));
-		logger.debug("Employee saved to DB: {}", saved);
-
-		redisTemplate.opsForHash().put(HASH_KEY, String.valueOf(saved.getId()), saved);
-		logger.debug("Employee cached in Redis with ID: {}", saved.getId());
-
 		logger.info("Employee saved successfully with ID: {}", saved.getId());
 		return EmployeeDTO.mapToDTO(saved);
 	}
@@ -60,28 +53,22 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
+	@Cacheable(value = "employee", key = "#id", unless = "#result == null")
 	public EmployeeDTO getById(Integer id) {
 		logger.debug("Fetching employee with ID: {}", id);
 
-		Employee employee = (Employee) redisTemplate.opsForHash().get(HASH_KEY, String.valueOf(id));
+		Employee employee = repo.findById(id)
+				.orElseThrow(() -> {
+					logger.error("Employee not found with ID: {}", id);
+					return new EmployeeNotFoundException("Employee not found with ID: " + id);
+				});
 
-		if (employee == null) {
-			logger.warn("Employee not found in Redis cache for ID: {}, querying DB.", id);
-			employee = repo.findById(id)
-					.orElseThrow(() -> {
-						logger.error("Employee not found with ID: {}", id);
-						return new EmployeeNotFoundException("Employee not found with ID: " + id);
-					});
-			redisTemplate.opsForHash().put(HASH_KEY, String.valueOf(id), employee);
-			logger.debug("Employee cached in Redis after DB fetch: {}", employee);
-		} else {
-			logger.info("Employee found in Redis cache for ID: {}", id);
-		}
-
+		logger.info("Employee fetched from DB with ID: {}", id);
 		return EmployeeDTO.mapToDTO(employee);
 	}
 
 	@Override
+	@CachePut(value = "employee", key = "#id", unless = "#result == null")
 	public EmployeeDTO update(Integer id, EmployeeDTO dto) {
 		logger.debug("Attempting full update for employee ID: {} with data: {}", id, dto);
 
@@ -96,16 +83,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 		existing.setGender(dto.getGender());
 
 		Employee updated = repo.save(existing);
-		logger.debug("Employee updated in DB: {}", updated);
-
-		redisTemplate.opsForHash().put(HASH_KEY,String.valueOf(updated.getId()) , updated);
-		logger.debug("Employee cache updated in Redis for ID: {}", updated.getId());
-
 		logger.info("Employee updated successfully with ID: {}", updated.getId());
 		return EmployeeDTO.mapToDTO(updated);
 	}
 
 	@Override
+	@CachePut(value = "employee", key = "#id", unless = "#result == null")
 	public EmployeeDTO updatePartial(Integer id, EmployeeDTO dto) {
 		logger.debug("Attempting partial update for employee ID: {} with data: {}", id, dto);
 
@@ -129,16 +112,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 		}
 
 		Employee updated = repo.save(existing);
-		logger.debug("Employee partially updated in DB: {}", updated);
-
-		redisTemplate.opsForHash().put(HASH_KEY, String.valueOf(updated.getId()), updated);
-		logger.debug("Employee cache partially updated in Redis for ID: {}", updated.getId());
-
 		logger.info("Employee partially updated with ID: {}", updated.getId());
 		return EmployeeDTO.mapToDTO(updated);
 	}
 
 	@Override
+	@CacheEvict(value = "employee", key = "#id")
 	public void deleteById(Integer id) {
 		logger.debug("Attempting to delete employee with ID: {}", id);
 
@@ -149,11 +128,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 				});
 
 		repo.deleteById(id);
-		logger.debug("Employee deleted from DB with ID: {}", id);
-
-		redisTemplate.opsForHash().delete(HASH_KEY, String.valueOf(id));
-		logger.debug("Employee removed from Redis cache with ID: {}", id);
-
-		logger.info("Employee deleted with ID: {}", id);
+		logger.info("Employee deleted from DB and cache evicted for ID: {}", id);
 	}
 }
