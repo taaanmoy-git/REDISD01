@@ -1,9 +1,13 @@
 package com.redisd01.dto;
 
+import java.io.Serializable;
+
 import com.redisd01.entity.Employee;
 
-public class EmployeeDTO {
+public class EmployeeDTO implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+	
 	private Integer id;
     private String name;
     private Integer age;

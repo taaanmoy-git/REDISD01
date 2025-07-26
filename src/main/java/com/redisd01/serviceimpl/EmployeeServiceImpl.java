@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,10 @@ import com.redisd01.excepion.EmployeeNotFoundException;
 import com.redisd01.repository.EmployeeRepository;
 import com.redisd01.service.EmployeeService;
 
+// its using Entity for Redis
+
+
+@Primary
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
