@@ -147,7 +147,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	public void deleteById(Integer id) {
 		logger.debug("Attempting to delete employee with ID: {}", id);
 
-		Employee existing = repo.findById(id)
+		repo.findById(id)
 				.orElseThrow(() -> {
 					logger.error("Cannot delete, employee not found with ID: {}", id);
 					return new EmployeeNotFoundException("Employee not found with ID: " + id);

@@ -47,6 +47,11 @@ public class EmployeeServiceImplCacheAnnotation implements EmployeeService {
 		List<Employee> employees = repo.findAll();
 		logger.info("Fetched {} employees from database.", employees.size());
 
+		if (employees.isEmpty()) {
+			logger.warn("No employees found in the database.");
+			throw new EmployeeNotFoundException("No employees found in the database");
+		}
+
 		return employees.stream()
 				.map(EmployeeDTO::mapToDTO)
 				.collect(Collectors.toList());
@@ -121,7 +126,7 @@ public class EmployeeServiceImplCacheAnnotation implements EmployeeService {
 	public void deleteById(Integer id) {
 		logger.debug("Attempting to delete employee with ID: {}", id);
 
-		Employee existing = repo.findById(id)
+		repo.findById(id)
 				.orElseThrow(() -> {
 					logger.error("Cannot delete, employee not found with ID: {}", id);
 					return new EmployeeNotFoundException("Employee not found with ID: " + id);

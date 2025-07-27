@@ -37,7 +37,6 @@ public class GlobalExceptionHandler {
 	    return new ResponseEntity<>(error, HttpStatus.CONFLICT);
 	}
 
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorMessage> handleGenericException(Exception ex) {
         ErrorMessage error = new ErrorMessage(
@@ -50,16 +49,5 @@ public class GlobalExceptionHandler {
     }
     
     // RuntimeException is a subclass of Exception, 
-    // and you're catching both separately, Spring gets confused 
-    // which one should be used for a RuntimeException.
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<ErrorMessage> handleGenericRuntimeException(RuntimeException ex) {
-//        ErrorMessage error = new ErrorMessage(
-//                LocalDateTime.now(),
-//                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-//                "Internal Server Error",
-//                ex.getMessage()
-//        );
-//        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
+    // No Need If we Use @ExceptionHandler(Exception.class)
 }
